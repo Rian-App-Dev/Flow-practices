@@ -34,14 +34,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        CoroutineScope(Dispatchers.Main).launch {
-            getUserName().forEach{
-                Log.d("TAG", it)
-            }
-        }
-
-        producer()
-        consumer()
+//        CoroutineScope(Dispatchers.Main).launch {
+//            getUserName().forEach{
+//                Log.d("TAG", it)
+//            }
+//        }
+//
+//        producer()
+//        consumer()
         setContent {
             FlowsPracticesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

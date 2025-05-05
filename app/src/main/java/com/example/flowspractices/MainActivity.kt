@@ -20,7 +20,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -32,14 +34,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-//        CoroutineScope(Dispatchers.Main).launch {
-//            getUserName().forEach{
-//                Log.d("TAG", it)
-//            }
-//        }
-//
-//        producer()
-//        consumer()
+        CoroutineScope(Dispatchers.Main).launch {
+            getUserName().forEach{
+                Log.d("TAG", it)
+            }
+        }
+
+        producer()
+        consumer()
         setContent {
             FlowsPracticesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -48,12 +50,14 @@ class MainActivity : ComponentActivity() {
             }
         }
         GlobalScope.launch(Dispatchers.Main) {
-            val data: Flow<Int> = producer()
+            val data: Flow<Int> = producer2()
 
             data
                 .onStart {
+                    emit(0)
                     Log.d("TAG", "Count started")
                 }.onCompletion {
+                    emit(11)
                     Log.d("TAG", "Count completed")
                 }.onEach {
                     Log.d("TAG", "${it + 10}")
@@ -61,38 +65,51 @@ class MainActivity : ComponentActivity() {
                     Log.d("TAG", it.toString())
                 }
         }
+        GlobalScope.launch(Dispatchers.Main) {
+            producer3()
+                .map {
+                    it * 2
+                }
+                .filter {
+                    it <= 30
+                }
+                .collect{
+                    Log.d("TAG P2", it.toString())
+                    //Log.d("TAG P2", "$it")
+                }
+        }
 
     }
 
-    //    suspend fun getUserName():List<String>{
-//        val list = mutableListOf<String>()
-//        list.add(getUser(1))
-//        list.add(getUser(2))
-//        list.add(getUser(3))
-//        return list
-//    }
-//
-//    suspend fun getUser(id: Int): String{
-//        delay(3000)
-//        return "userId $id"
-//    }
-//    fun producer(){
-//        CoroutineScope(Dispatchers.Main).launch {
-//            channel.send(1)
-//            delay(1000)
-//            channel.send(2)
-//            delay(1000)
-//            channel.send(3)
-//        }
-//    }
-//    fun consumer(){
-//        CoroutineScope(Dispatchers.Main).launch {
-//            Log.d("TAG", channel.receive().toString())
-//            Log.d("TAG", channel.receive().toString())
-//            Log.d("TAG", channel.receive().toString())
-//        }
-//    }
-    fun producer(): Flow<Int> {
+        suspend fun getUserName():List<String>{
+        val list = mutableListOf<String>()
+        list.add(getUser(1))
+        list.add(getUser(2))
+        list.add(getUser(3))
+        return list
+    }
+
+    suspend fun getUser(id: Int): String{
+        delay(3000)
+        return "userId $id"
+    }
+    fun producer(){
+        CoroutineScope(Dispatchers.Main).launch {
+            channel.send(1)
+            delay(1000)
+            channel.send(2)
+            delay(1000)
+            channel.send(3)
+        }
+    }
+    fun consumer(){
+        CoroutineScope(Dispatchers.Main).launch {
+            Log.d("TAG", channel.receive().toString())
+            Log.d("TAG", channel.receive().toString())
+            Log.d("TAG", channel.receive().toString())
+        }
+    }
+    fun producer2(): Flow<Int> {
         var receive: Flow<Int>? = null
         receive = flow<Int> {
             val list = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -103,6 +120,15 @@ class MainActivity : ComponentActivity() {
 
         }
         return receive
+    }
+    fun producer3(): Flow<Int>{
+        return flow {
+            val list = listOf(10,11,12,13,14,15,16,17,18,19,20)
+            list.forEach {
+                emit(it)
+                delay(1200)
+            }
+        }
     }
 }
 
